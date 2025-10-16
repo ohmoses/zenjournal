@@ -1,8 +1,14 @@
 import React from "react";
-import { Routes, Route, BrowserRouter } from "react-router";
+import { Routes, Route, BrowserRouter, Link } from "react-router";
 import EntryInput from "./EntryInput";
+import { useStore } from "./store";
+import AllEntries from "./AllEntries";
+import EntriesByTag from "./EntriesByTag";
 
 export default function App() {
+	const addEntry = useStore((store) => store.addEntry);
+	const tags = useStore((store) => store.tags);
+
 	React.useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		const handleChange = (e: MediaQueryListEvent) => {
@@ -16,20 +22,32 @@ export default function App() {
 
 	return (
 		<BrowserRouter>
-			<Routes>
-				<Route
-					path="/"
-					element={
-						<EntryInput
-							submit={({ tags, text }) => {
-								console.log("tags:", [...tags]);
-								console.log("text:", JSON.stringify(text));
-								console.log("---");
-							}}
-						/>
-					}
-				/>
-			</Routes>
+			<div className="flex">
+				<nav>
+					<ul>
+						<li>
+							<Link to="/">Home</Link>
+						</li>
+						<li>
+							<Link to="/all">All entries</Link>
+						</li>
+						{[...tags].map(([tag, count]) => (
+							<li key={tag}>
+								<Link to={`/tag/${tag}`}>
+									#{tag} ({count})
+								</Link>
+							</li>
+						))}
+					</ul>
+				</nav>
+				<main>
+					<Routes>
+						<Route index element={<EntryInput submit={addEntry} />} />
+						<Route path="/all" element={<AllEntries />} />
+						<Route path="/tag/:tag" element={<EntriesByTag />} />
+					</Routes>
+				</main>
+			</div>
 		</BrowserRouter>
 	);
 }

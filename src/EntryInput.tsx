@@ -1,11 +1,10 @@
 import React from "react";
 
-type RawEntry = {
-	text: string;
-	tags: Set<string>;
-};
-
-export default function EntryInput({ submit }: { submit: (entry: RawEntry) => void }) {
+export default function EntryInput({
+	submit,
+}: {
+	submit: (text: string, tags: Set<string>) => void;
+}) {
 	const [text, setText] = React.useState("");
 	const [tags, setTags] = React.useState(new Set<string>());
 	const sortedTags = [...tags].sort();
@@ -27,10 +26,11 @@ export default function EntryInput({ submit }: { submit: (entry: RawEntry) => vo
 		// Add extra space so that we can extract a tag at the end of the text
 		// without treating submission as a special case vs mid-typing.
 		const result = extractTag(text + " ");
-		const entry = result
-			? { tags: new Set(tags).add(result.tag), text: result.text.trim() }
-			: { tags, text: text.trim() };
-		submit(entry);
+		if (result) {
+			submit(result.text.trim(), new Set(tags).add(result.tag));
+		} else {
+			submit(text.trim(), tags);
+		}
 		setTags(new Set());
 		setText("");
 		requestAnimationFrame(() => textareaRef.current?.focus());
