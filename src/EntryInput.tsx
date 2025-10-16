@@ -9,6 +9,9 @@ export default function EntryInput({ submit }: { submit: (entry: RawEntry) => vo
 	const [text, setText] = React.useState("");
 	const [tags, setTags] = React.useState(new Set<string>());
 	const sortedTags = [...tags].sort();
+	const isEmpty = tags.size === 0 && text.length === 0;
+	const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+	const cursorToRestore = React.useRef<number | null>(null);
 
 	function submitListener(e: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (e.key === "Enter" && !e.shiftKey) {
@@ -16,8 +19,6 @@ export default function EntryInput({ submit }: { submit: (entry: RawEntry) => vo
 			save();
 		}
 	}
-
-	const isEmpty = tags.size === 0 && text.length === 0;
 
 	function save() {
 		if (isEmpty) {
@@ -53,9 +54,6 @@ export default function EntryInput({ submit }: { submit: (entry: RawEntry) => vo
 			return newTags;
 		});
 	}
-
-	const textareaRef = React.useRef<HTMLTextAreaElement>(null);
-	const cursorToRestore = React.useRef<number | null>(null);
 
 	React.useLayoutEffect(() => {
 		if (textareaRef.current && cursorToRestore.current) {

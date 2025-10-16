@@ -1,21 +1,14 @@
-import { useEffect } from "react";
+import React from "react";
 import { Routes, Route, BrowserRouter } from "react-router";
 import EntryInput from "./EntryInput";
 
 export default function App() {
-	useEffect(() => {
+	React.useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
 		const handleChange = (e: MediaQueryListEvent) => {
-			if (e.matches) {
-				document.documentElement.classList.add("dark");
-			} else {
-				document.documentElement.classList.remove("dark");
-			}
+			setDarkMode(e.matches);
 		};
-
 		mediaQuery.addEventListener("change", handleChange);
-
 		return () => {
 			mediaQuery.removeEventListener("change", handleChange);
 		};
@@ -39,4 +32,12 @@ export default function App() {
 			</Routes>
 		</BrowserRouter>
 	);
+}
+
+function setDarkMode(isDark: boolean) {
+	if (isDark) {
+		document.documentElement.classList.add("dark");
+	} else {
+		document.documentElement.classList.remove("dark");
+	}
 }
