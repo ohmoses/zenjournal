@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { Routes, Route, BrowserRouter } from "react-router";
+import EntryInput from "./EntryInput";
 
 export default function App() {
 	useEffect(() => {
@@ -23,7 +24,18 @@ export default function App() {
 	return (
 		<BrowserRouter>
 			<Routes>
-				<Route path="/" element={<div>hello world</div>} />
+				<Route
+					path="/"
+					element={
+						<EntryInput
+							submit={({ tags, text }) => {
+								console.log("tags:", [...tags]);
+								console.log("text:", JSON.stringify(text));
+								console.log("---");
+							}}
+						/>
+					}
+				/>
 			</Routes>
 		</BrowserRouter>
 	);
