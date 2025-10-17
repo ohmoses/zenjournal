@@ -6,6 +6,7 @@ import { useParams } from "react-router";
 export default function EntriesByTag() {
 	const { tag } = useParams();
 	const entries = useStore(useShallow(getGroupedEntriesByTag(tag!)));
+	const deleteEntry = useStore((store) => store.deleteEntry);
 
 	if (entries === null) {
 		return <div>This tag doesn't exist.</div>;
@@ -20,7 +21,11 @@ export default function EntriesByTag() {
 			<h1 className="font-semibold text-2xl">#{tag}</h1>
 			<div>
 				{entries.map((dayEntries) => (
-					<DayEntries key={dayEntries.date.toString()} data={dayEntries} />
+					<DayEntries
+						key={dayEntries.date.toString()}
+						data={dayEntries}
+						deleteEntry={deleteEntry}
+					/>
 				))}
 			</div>
 		</div>

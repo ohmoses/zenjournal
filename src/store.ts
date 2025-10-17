@@ -4,11 +4,12 @@ import type { PersistStorage } from "zustand/middleware";
 import { persist } from "zustand/middleware";
 import { memoize } from "proxy-memoize";
 
-type Entry = {
+export type Entry = {
 	id: string;
 	text: string;
 	tags: Set<string>;
 	createdAt: Temporal.ZonedDateTime;
+	lastModifiedAt: Temporal.ZonedDateTime | null;
 };
 
 export type DayEntries = {
@@ -20,6 +21,8 @@ type Store = {
 	entries: Array<Entry>;
 	tagCounts: Map<string, number>;
 	addEntry: (text: string, tags: Set<string>) => void;
+	updateEntry: (id: Entry["id"], text: string, tags: Set<string>) => void;
+	deleteEntry: (id: Entry["id"]) => void;
 };
 
 SuperJSON.registerCustom<Temporal.ZonedDateTime, string>(
@@ -62,16 +65,78 @@ export const useStore = create<Store>()(
 					text,
 					tags,
 					createdAt,
+					lastModifiedAt: null,
 				};
-				if (tags.size > 0) {
-					const newTagCounts = new Map(get().tagCounts);
-					for (const tag of tags) {
-						const count = newTagCounts.get(tag) ?? 0;
-						newTagCounts.set(tag, count + 1);
-					}
-					set({ tagCounts: newTagCounts });
-				}
 				set({ entries: [...get().entries, entry] });
+
+				if (tags.size === 0) {
+					return;
+				}
+				const newTagCounts = new Map(get().tagCounts);
+				for (const tag of tags) {
+					const count = newTagCounts.get(tag) ?? 0;
+					newTagCounts.set(tag, count + 1);
+				}
+				set({ tagCounts: newTagCounts });
+			},
+			updateEntry(id, text, tags) {
+				const lastModifiedAt = Temporal.ZonedDateTime.from(Temporal.Now.zonedDateTimeISO());
+				const { entries, addEntry } = get();
+				const index = entries.findIndex((entry) => entry.id === id);
+				if (index < 0) {
+					return addEntry(text, tags);
+				}
+				const oldEntry = entries[index];
+				const newEntry: Entry = {
+					...oldEntry,
+					text,
+					tags,
+					lastModifiedAt,
+				};
+				set({ entries: entries.with(index, newEntry) });
+
+				const tagsAdded = tags.difference(oldEntry.tags);
+				const tagsRemoved = oldEntry.tags.difference(tags);
+				if (tagsAdded.size === 0 && tagsRemoved.size === 0) {
+					return;
+				}
+				const newTagCounts = new Map(get().tagCounts);
+				for (const tag of tagsAdded) {
+					const count = newTagCounts.get(tag) ?? 0;
+					newTagCounts.set(tag, count + 1);
+				}
+				for (const tag of tagsRemoved) {
+					const count = newTagCounts.get(tag) ?? 1;
+					if (count <= 1) {
+						newTagCounts.delete(tag);
+					} else {
+						newTagCounts.set(tag, count - 1);
+					}
+				}
+				set({ tagCounts: newTagCounts });
+			},
+			deleteEntry(id) {
+				const { entries } = get();
+				const index = entries.findIndex((entry) => entry.id === id);
+				if (index < 0) {
+					return;
+				}
+				set({ entries: entries.toSpliced(index, 1) });
+
+				const { tags } = entries[index];
+				if (tags.size === 0) {
+					return;
+				}
+				const newTagCounts = new Map(get().tagCounts);
+				for (const tag of tags) {
+					const count = newTagCounts.get(tag) ?? 1;
+					if (count <= 1) {
+						newTagCounts.delete(tag);
+					} else {
+						newTagCounts.set(tag, count - 1);
+					}
+				}
+				set({ tagCounts: newTagCounts });
 			},
 		}),
 		{

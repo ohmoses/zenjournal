@@ -1,11 +1,13 @@
-import type { DayEntries } from "./store";
+import type { DayEntries, Entry } from "./store";
 
 export default function DayEntries({
 	data: { date, entries },
 	withTags = false,
+	deleteEntry,
 }: {
 	data: DayEntries;
 	withTags?: boolean;
+	deleteEntry: (id: Entry["id"]) => void;
 }) {
 	return (
 		<section>
@@ -25,7 +27,8 @@ export default function DayEntries({
 									</span>
 								))}
 							</span>
-						)}
+						)}{" "}
+						<button onClick={(_) => deleteEntry(entry.id)}>delete</button>
 					</p>
 				))}
 			</ol>
