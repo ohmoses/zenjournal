@@ -7,7 +7,7 @@ import EntriesByTag from "./EntriesByTag";
 
 export default function App() {
 	const addEntry = useStore((store) => store.addEntry);
-	const tags = useStore((store) => store.tags);
+	const tagCounts = useStore((store) => store.tagCounts);
 
 	React.useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -31,7 +31,7 @@ export default function App() {
 						<li>
 							<Link to="/all">All entries</Link>
 						</li>
-						{[...tags].map(([tag, count]) => (
+						{[...tagCounts].map(([tag, count]) => (
 							<li key={tag}>
 								<Link to={`/tag/${tag}`}>
 									#{tag} ({count})

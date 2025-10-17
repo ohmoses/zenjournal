@@ -16,7 +16,7 @@ export default function DayEntries({
 				{entries.map((entry) => (
 					<p key={entry.id}>
 						[{entry.createdAt.toPlainTime().toLocaleString(undefined, { timeStyle: "short" })}]{" "}
-						{entry.text}
+						{entry.text}{" "}
 						{withTags && (
 							<span className="inline-flex gap-1">
 								{[...entry.tags.values()].map((tag) => (

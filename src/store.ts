@@ -18,7 +18,7 @@ export type DayEntries = {
 
 type Store = {
 	entries: Array<Entry>;
-	tags: Map<string, number>;
+	tagCounts: Map<string, number>;
 	addEntry: (text: string, tags: Set<string>) => void;
 };
 
@@ -34,8 +34,15 @@ SuperJSON.registerCustom<Temporal.ZonedDateTime, string>(
 const storage: PersistStorage<Store> = {
 	getItem: (name) => {
 		const str = localStorage.getItem(name);
-		if (!str) return null;
-		return SuperJSON.parse(str);
+		if (!str) {
+			return null;
+		}
+		try {
+			return SuperJSON.parse(str);
+		} catch (err) {
+			console.error("Failed to parse storage:", err);
+			throw err;
+		}
 	},
 	setItem: (name, value) => {
 		localStorage.setItem(name, SuperJSON.stringify(value));
@@ -47,7 +54,7 @@ export const useStore = create<Store>()(
 	persist(
 		(set, get) => ({
 			entries: [],
-			tags: new Map(),
+			tagCounts: new Map(),
 			addEntry(text, tags) {
 				const createdAt = Temporal.ZonedDateTime.from(Temporal.Now.zonedDateTimeISO());
 				const entry: Entry = {
@@ -57,12 +64,12 @@ export const useStore = create<Store>()(
 					createdAt,
 				};
 				if (tags.size > 0) {
-					const newTags = new Map(get().tags);
+					const newTagCounts = new Map(get().tagCounts);
 					for (const tag of tags) {
-						const count = newTags.get(tag) ?? 0;
-						newTags.set(tag, count + 1);
+						const count = newTagCounts.get(tag) ?? 0;
+						newTagCounts.set(tag, count + 1);
 					}
-					set({ tags: newTags });
+					set({ tagCounts: newTagCounts });
 				}
 				set({ entries: [...get().entries, entry] });
 			},
@@ -77,24 +84,21 @@ export const useStore = create<Store>()(
 export const getGroupedAllEntries = memoize(({ entries }: Store) => groupEntriesByDate(entries));
 
 export const getGroupedEntriesByTag = (tag: string) =>
-	memoize(({ entries }: Store) => {
-		const entriesByTag = entries.filter(({ tags }) => tags.has(tag));
-		return groupEntriesByDate(entriesByTag);
-	});
+	memoize(({ entries }: Store) => groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag))));
 
 function groupEntriesByDate(entries: Array<Entry>) {
-	const groupedMap = entries.reduce((map, entry) => {
-		const date = entry.createdAt.toPlainDate();
-		const key = date.toString();
-		const existing = map.get(key);
-		if (existing) {
-			existing.entries.push(entry);
-		} else {
-			map.set(key, { date, entries: [entry] });
-		}
-		return map;
-	}, new Map<string, DayEntries>());
-	const groupedArray = [...groupedMap.values()];
-	groupedArray.sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
-	return groupedArray;
+	const groupedMap = entries.reduce(toDayEntriesMap, new Map<string, DayEntries>());
+	return [...groupedMap.values()].sort((a, b) => Temporal.PlainDate.compare(a.date, b.date));
+}
+
+function toDayEntriesMap(acc: Map<string, DayEntries>, entry: Entry) {
+	const date = entry.createdAt.toPlainDate();
+	const key = date.toString();
+	const existing = acc.get(key);
+	if (existing) {
+		existing.entries.push(entry);
+	} else {
+		acc.set(key, { date, entries: [entry] });
+	}
+	return acc;
 }
