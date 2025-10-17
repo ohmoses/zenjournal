@@ -84,7 +84,12 @@ export const useStore = create<Store>()(
 export const getGroupedAllEntries = memoize(({ entries }: Store) => groupEntriesByDate(entries));
 
 export const getGroupedEntriesByTag = (tag: string) =>
-	memoize(({ entries }: Store) => groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag))));
+	memoize(({ entries, tagCounts }: Store) => {
+		if (!tagCounts.has(tag)) {
+			return null;
+		}
+		return groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag)));
+	});
 
 function groupEntriesByDate(entries: Array<Entry>) {
 	const groupedMap = entries.reduce(toDayEntriesMap, new Map<string, DayEntries>());

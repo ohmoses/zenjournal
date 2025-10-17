@@ -4,6 +4,7 @@ import EntryInput from "./EntryInput";
 import { useStore } from "./store";
 import AllEntries from "./AllEntries";
 import EntriesByTag from "./EntriesByTag";
+import Route404 from "./404";
 
 export default function App() {
 	const addEntry = useStore((store) => store.addEntry);
@@ -45,6 +46,7 @@ export default function App() {
 						<Route index element={<EntryInput submit={addEntry} />} />
 						<Route path="/all" element={<AllEntries />} />
 						<Route path="/tag/:tag" element={<EntriesByTag />} />
+						<Route path="*" element={<Route404 />} />
 					</Routes>
 				</main>
 			</div>

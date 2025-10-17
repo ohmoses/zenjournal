@@ -7,8 +7,12 @@ export default function EntriesByTag() {
 	const { tag } = useParams();
 	const entries = useStore(useShallow(getGroupedEntriesByTag(tag!)));
 
+	if (entries === null) {
+		return <div>This tag doesn't exist.</div>;
+	}
+
 	if (entries.length === 0) {
-		return <div>No entries yet.</div>;
+		return <div>Uhh. This shouldn't happen.</div>;
 	}
 
 	return (
