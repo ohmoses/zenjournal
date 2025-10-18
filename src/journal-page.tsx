@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/shallow";
 import { getGroupedAllEntries, getGroupedEntriesByTag, useJournalStore, type Entry } from "./store";
-import EntryInput from "./EntryInput";
+import EntryInput from "./entry-input";
 import React from "react";
 import { useParams } from "react-router";
 

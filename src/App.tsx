@@ -2,7 +2,7 @@ import React from "react";
 import { Routes, Route, BrowserRouter, Link } from "react-router";
 import { useJournalStore } from "./store";
 import Route404 from "./404";
-import JournalPage from "./JournalPage";
+import JournalPage from "./journal-page";
 
 export default function App() {
 	const tagCounts = useJournalStore((store) => store.tagCounts);
