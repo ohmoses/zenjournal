@@ -1,14 +1,11 @@
 import React from "react";
 import { Routes, Route, BrowserRouter, Link } from "react-router";
-import EntryInput from "./EntryInput";
-import { useStore } from "./store";
-import AllEntries from "./AllEntries";
-import EntriesByTag from "./EntriesByTag";
+import { useJournalStore } from "./store";
 import Route404 from "./404";
+import JournalPage from "./JournalPage";
 
 export default function App() {
-	const addEntry = useStore((store) => store.addEntry);
-	const tagCounts = useStore((store) => store.tagCounts);
+	const tagCounts = useJournalStore((store) => store.tagCounts);
 
 	React.useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
@@ -27,10 +24,7 @@ export default function App() {
 				<nav>
 					<ul>
 						<li>
-							<Link to="/">Home</Link>
-						</li>
-						<li>
-							<Link to="/all">All entries</Link>
+							<Link to="/">main</Link>
 						</li>
 						{[...tagCounts].map(([tag, count]) => (
 							<li key={tag}>
@@ -43,9 +37,8 @@ export default function App() {
 				</nav>
 				<main>
 					<Routes>
-						<Route index element={<EntryInput submit={addEntry} />} />
-						<Route path="/all" element={<AllEntries />} />
-						<Route path="/tag/:tag" element={<EntriesByTag />} />
+						<Route index element={<JournalPage />} />
+						<Route path="/tag/:tag" element={<JournalPage />} />
 						<Route path="*" element={<Route404 />} />
 					</Routes>
 				</main>

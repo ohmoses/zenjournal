@@ -1,9 +1,14 @@
 import React from "react";
+import type { Entry } from "./store";
 
 export default function EntryInput({
 	submit,
+	entryToEdit,
+	cancelEdit,
 }: {
-	submit: (text: string, tags: Set<string>) => void;
+	submit: (entry: { text: string; tags: Set<string> }) => void;
+	entryToEdit: Entry | null;
+	cancelEdit: () => void;
 }) {
 	const [text, setText] = React.useState("");
 	const [tags, setTags] = React.useState(new Set<string>());
@@ -11,11 +16,45 @@ export default function EntryInput({
 	const isEmpty = tags.size === 0 && text.length === 0;
 	const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 	const cursorToRestore = React.useRef<number | null>(null);
+	const prevEntryToEdit = React.useRef(entryToEdit);
+	const draftText = React.useRef("");
+	const draftTags = React.useRef(new Set<string>());
 
-	function submitListener(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+	if (prevEntryToEdit.current?.id !== entryToEdit?.id) {
+		// Case 1: Edit initiated
+		if (!prevEntryToEdit.current && entryToEdit) {
+			draftText.current = text;
+			setText(entryToEdit.text);
+			draftTags.current = tags;
+			setTags(entryToEdit.tags);
+		}
+		// Case 2: Entry to edit changed
+		if (prevEntryToEdit.current && entryToEdit) {
+			setText(entryToEdit.text);
+			setTags(entryToEdit.tags);
+		}
+		// Case 3: Edit was submitted or cancelled
+		else if (prevEntryToEdit.current && !entryToEdit) {
+			setText(draftText.current);
+			draftText.current = "";
+			setTags(draftTags.current);
+			draftTags.current = new Set();
+		}
+		prevEntryToEdit.current = entryToEdit;
+		if (textareaRef.current) {
+			textareaRef.current.focus();
+			const len = textareaRef.current.value.length;
+			textareaRef.current.setSelectionRange(len, len);
+		}
+	}
+
+	function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			save();
+		}
+		if (e.key === "Escape" && entryToEdit) {
+			cancelEdit();
 		}
 	}
 
@@ -23,16 +62,18 @@ export default function EntryInput({
 		if (isEmpty) {
 			return;
 		}
-		// Add extra space so that we can extract a tag at the end of the text
-		// without treating submission as a special case vs mid-typing.
+		// Add extra space so that we can extract a tag at the end of the text without treating
+		// submission as a special case vs mid-typing.
 		const result = extractTag(text + " ");
 		if (result) {
-			submit(result.text.trim(), new Set(tags).add(result.tag));
+			submit({ text: result.text.trim(), tags: new Set(tags).add(result.tag) });
 		} else {
-			submit(text.trim(), tags);
+			submit({ text: text.trim(), tags });
 		}
-		setTags(new Set());
-		setText("");
+		if (!entryToEdit) {
+			setTags(new Set());
+			setText("");
+		}
 		requestAnimationFrame(() => textareaRef.current?.focus());
 	}
 
@@ -77,11 +118,14 @@ export default function EntryInput({
 				ref={textareaRef}
 				value={text}
 				onChange={handleChange}
-				onKeyDown={submitListener}
-			/>
-			<button onClick={save} disabled={isEmpty}>
-				Save
-			</button>
+				onKeyDown={handleKeyDown}
+			/>{" "}
+			<span className="inline-flex gap-1">
+				<button onClick={save} disabled={isEmpty}>
+					[save]
+				</button>
+				{entryToEdit && <button onClick={cancelEdit}>[cancel]</button>}
+			</span>
 		</div>
 	);
 }

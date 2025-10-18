@@ -20,8 +20,8 @@ export type DayEntries = {
 type Store = {
 	entries: Array<Entry>;
 	tagCounts: Map<string, number>;
-	addEntry: (text: string, tags: Set<string>) => void;
-	updateEntry: (id: Entry["id"], text: string, tags: Set<string>) => void;
+	addEntry: (entry: { text: string; tags: Set<string> }) => void;
+	updateEntry: (id: Entry["id"], entry: { text: string; tags: Set<string> }) => void;
 	deleteEntry: (id: Entry["id"]) => void;
 };
 
@@ -53,12 +53,12 @@ const storage: PersistStorage<Store> = {
 	removeItem: (name) => localStorage.removeItem(name),
 };
 
-export const useStore = create<Store>()(
+export const useJournalStore = create<Store>()(
 	persist(
 		(set, get) => ({
 			entries: [],
 			tagCounts: new Map(),
-			addEntry(text, tags) {
+			addEntry({ text, tags }) {
 				const createdAt = Temporal.ZonedDateTime.from(Temporal.Now.zonedDateTimeISO());
 				const entry: Entry = {
 					id: crypto.randomUUID(),
@@ -79,12 +79,12 @@ export const useStore = create<Store>()(
 				}
 				set({ tagCounts: newTagCounts });
 			},
-			updateEntry(id, text, tags) {
+			updateEntry(id, { text, tags }) {
 				const lastModifiedAt = Temporal.ZonedDateTime.from(Temporal.Now.zonedDateTimeISO());
 				const { entries, addEntry } = get();
 				const index = entries.findIndex((entry) => entry.id === id);
 				if (index < 0) {
-					return addEntry(text, tags);
+					return addEntry({ text, tags });
 				}
 				const oldEntry = entries[index];
 				const newEntry: Entry = {
@@ -149,12 +149,7 @@ export const useStore = create<Store>()(
 export const getGroupedAllEntries = memoize(({ entries }: Store) => groupEntriesByDate(entries));
 
 export const getGroupedEntriesByTag = (tag: string) =>
-	memoize(({ entries, tagCounts }: Store) => {
-		if (!tagCounts.has(tag)) {
-			return null;
-		}
-		return groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag)));
-	});
+	memoize(({ entries }: Store) => groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag))));
 
 function groupEntriesByDate(entries: Array<Entry>) {
 	const groupedMap = entries.reduce(toDayEntriesMap, new Map<string, DayEntries>());
