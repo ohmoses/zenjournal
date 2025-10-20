@@ -28,7 +28,7 @@ export default function JournalPage() {
 		})),
 	);
 	const [entryToEdit, setEntryToEdit] = React.useState<EntryType | null>(null);
-	const entriesEndElement = React.useRef<HTMLLIElement>(null);
+	const entriesEndElement = React.useRef<HTMLDivElement>(null);
 
 	function submit({ text, tags }: { text: string; tags: Set<string> }) {
 		if (entryToEdit) {
@@ -69,13 +69,10 @@ export default function JournalPage() {
 	}
 
 	// Tailwind doesn't allow interpolating strings; these all have to be the same number
-	const MAIN_Y_GAP = "gap-6";
 	const MAIN_Y_AFTER_H = "after:h-6";
 	const MAIN_Y_MB = "mb-6";
+	const MAIN_Y_MT = "mt-6";
 	const MAIN_Y_PB = "pb-6";
-
-	const DAYS_Y_GAP = "gap-3";
-	const DAYS_Y_NEG_MT = "mt-[calc(var(--spacing)*-3)]";
 
 	// Fade effect on the top and bottom of entries
 	const fadeClasses = cn(
@@ -102,9 +99,9 @@ export default function JournalPage() {
 				{isMobile && <SidebarTrigger />}
 				<h1 className="text-xl font-medium tracking-wide">{tag ? `#${tag}` : "main"}</h1>
 			</header>
-			<div className={cn(MAIN_Y_GAP, "m-auto flex max-w-xl flex-col px-4")}>
+			<div className="m-auto flex max-w-xl flex-col px-4">
 				{entries.length > 0 && (
-					<ol className={cn(DAYS_Y_GAP, "flex flex-col")}>
+					<ol className="flex flex-col gap-3">
 						{entries.map(({ date, entries }) => (
 							<li key={date.toString()}>
 								<section className="flex flex-col gap-3">
@@ -128,11 +125,17 @@ export default function JournalPage() {
 								</section>
 							</li>
 						))}
-						{/* Remove the extra gap using negative margin */}
-						<li ref={entriesEndElement} className={DAYS_Y_NEG_MT} />
 					</ol>
 				)}
-				<div className={cn(MAIN_Y_PB, "bg-background sticky bottom-0 z-10", fadeBottomClasses)}>
+				<div ref={entriesEndElement} />
+				<div
+					className={cn(
+						MAIN_Y_MT,
+						MAIN_Y_PB,
+						"bg-background sticky bottom-0 z-10",
+						fadeBottomClasses,
+					)}
+				>
 					<EntryInput
 						// Clear input by re-mounting when tag changes
 						key={tag}
