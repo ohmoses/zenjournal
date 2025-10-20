@@ -68,11 +68,19 @@ export default function JournalPage() {
 		);
 	}
 
-	const MAIN_Y_GAP = 8;
-	const DAYS_Y_GAP = 3;
+	// Tailwind doesn't allow interpolating strings; these all have to be the same number
+	const MAIN_Y_GAP = "gap-6";
+	const MAIN_Y_AFTER_H = "after:h-6";
+	const MAIN_Y_MB = "mb-6";
+	const MAIN_Y_PB = "pb-6";
+
+	const DAYS_Y_GAP = "gap-3";
+	const DAYS_Y_NEG_MT = "mt-[calc(var(--spacing)*-3)]";
+
 	// Fade effect on the top and bottom of entries
 	const fadeClasses = cn(
-		`after:pointer-events-none after:absolute after:right-0 after:left-0 after:h-${MAIN_Y_GAP} after:from-[var(--background)] after:to-transparent after:content-['']`,
+		MAIN_Y_AFTER_H,
+		"after:pointer-events-none after:absolute after:right-0 after:left-0 after:from-[var(--background)] after:to-transparent after:content-['']",
 	);
 	const fadeTopClasses = cn(
 		fadeClasses,
@@ -86,6 +94,7 @@ export default function JournalPage() {
 		<>
 			<header
 				className={cn(
+					MAIN_Y_MB,
 					"bg-sidebar sticky top-0 z-10 flex w-full gap-3 border-b px-5 py-3",
 					fadeTopClasses,
 				)}
@@ -93,37 +102,37 @@ export default function JournalPage() {
 				{isMobile && <SidebarTrigger />}
 				<h1 className="text-xl font-medium tracking-wide">{tag ? `#${tag}` : "main"}</h1>
 			</header>
-			<div className={`m-auto flex max-w-2xl flex-col gap-${MAIN_Y_GAP} p-${MAIN_Y_GAP} pb-0`}>
-				<ol className={`flex flex-col gap-${DAYS_Y_GAP}`}>
-					{entries.map(({ date, entries }) => (
-						<li key={date.toString()}>
-							<section className="flex flex-col gap-3">
-								<header className="flex justify-center">
-									<h2 className="rounded-full border px-2 py-0.5 font-medium shadow-xs">
-										<time dateTime={date.toString()}>
-											{date.toLocaleString(undefined, { month: "long", day: "numeric" })}
-										</time>
-									</h2>
-								</header>
-								<ol className="flex flex-col gap-1">
-									{entries.map((entry) => (
-										<Entry
-											key={entry.id}
-											entry={entry}
-											setToEdit={() => setEntryToEdit(entry)}
-											omitTag={tag}
-										/>
-									))}
-								</ol>
-							</section>
-						</li>
-					))}
-					{/* Remove the extra gap using negative margin */}
-					<li ref={entriesEndElement} className={`mt-[calc(var(--spacing)*-${DAYS_Y_GAP})]`} />
-				</ol>
-				<div
-					className={cn(`bg-background sticky bottom-0 z-10 pb-${MAIN_Y_GAP}`, fadeBottomClasses)}
-				>
+			<div className={cn(MAIN_Y_GAP, "m-auto flex max-w-xl flex-col px-4")}>
+				{entries.length > 0 && (
+					<ol className={cn(DAYS_Y_GAP, "flex flex-col")}>
+						{entries.map(({ date, entries }) => (
+							<li key={date.toString()}>
+								<section className="flex flex-col gap-3">
+									<header className="flex justify-center">
+										<h2 className="rounded-full border px-2 py-0.5 font-medium shadow-xs">
+											<time dateTime={date.toString()}>
+												{date.toLocaleString(undefined, { month: "long", day: "numeric" })}
+											</time>
+										</h2>
+									</header>
+									<ol className="flex flex-col gap-1">
+										{entries.map((entry) => (
+											<Entry
+												key={entry.id}
+												entry={entry}
+												setToEdit={() => setEntryToEdit(entry)}
+												omitTag={tag}
+											/>
+										))}
+									</ol>
+								</section>
+							</li>
+						))}
+						{/* Remove the extra gap using negative margin */}
+						<li ref={entriesEndElement} className={DAYS_Y_NEG_MT} />
+					</ol>
+				)}
+				<div className={cn(MAIN_Y_PB, "bg-background sticky bottom-0 z-10", fadeBottomClasses)}>
 					<EntryInput
 						// Clear input by re-mounting when tag changes
 						key={tag}

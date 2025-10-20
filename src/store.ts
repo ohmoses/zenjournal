@@ -140,7 +140,7 @@ export const useJournalStore = create<Store>()(
 			},
 		}),
 		{
-			name: "store",
+			name: "journal_store",
 			storage,
 		},
 	),

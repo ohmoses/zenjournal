@@ -34,23 +34,25 @@ export default function AppSidebar() {
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
-				<SidebarGroup>
-					<SidebarGroupLabel>Tags</SidebarGroupLabel>
-					<SidebarGroupContent>
-						<SidebarMenu>
-							{tagsSorted.map(([tag]) => {
-								const path = `/tag/${tag}`;
-								return (
-									<SidebarMenuItem key={tag}>
-										<SidebarMenuButton asChild isActive={location.pathname === path}>
-											<NavLink to={path}>#{tag}</NavLink>
-										</SidebarMenuButton>
-									</SidebarMenuItem>
-								);
-							})}
-						</SidebarMenu>
-					</SidebarGroupContent>
-				</SidebarGroup>
+				{tagsSorted.length > 0 && (
+					<SidebarGroup>
+						<SidebarGroupLabel>Tags</SidebarGroupLabel>
+						<SidebarGroupContent>
+							<SidebarMenu>
+								{tagsSorted.map(([tag]) => {
+									const path = `/tag/${tag}`;
+									return (
+										<SidebarMenuItem key={tag}>
+											<SidebarMenuButton asChild isActive={location.pathname === path}>
+												<NavLink to={path}>#{tag}</NavLink>
+											</SidebarMenuButton>
+										</SidebarMenuItem>
+									);
+								})}
+							</SidebarMenu>
+						</SidebarGroupContent>
+					</SidebarGroup>
+				)}
 			</SidebarContent>
 		</Sidebar>
 	);
