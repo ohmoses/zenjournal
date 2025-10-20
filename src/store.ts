@@ -1,6 +1,6 @@
 import SuperJSON from "superjson";
 import { create } from "zustand";
-import type { PersistStorage } from "zustand/middleware";
+import type { StorageValue } from "zustand/middleware";
 import { persist } from "zustand/middleware";
 import { memoize } from "proxy-memoize";
 
@@ -17,7 +17,7 @@ export type DayEntries = {
 	entries: Array<Entry>;
 };
 
-type Store = {
+type JournalStore = {
 	entries: Array<Entry>;
 	tagCounts: Map<string, number>;
 	addEntry: (entry: { text: string; tags: Set<string> }) => void;
@@ -25,6 +25,7 @@ type Store = {
 	deleteEntry: (id: Entry["id"]) => void;
 };
 
+// This has to run before create()
 SuperJSON.registerCustom<Temporal.ZonedDateTime, string>(
 	{
 		isApplicable: (v): v is Temporal.ZonedDateTime => v instanceof Temporal.ZonedDateTime,
@@ -34,26 +35,7 @@ SuperJSON.registerCustom<Temporal.ZonedDateTime, string>(
 	"ZonedDateTime",
 );
 
-const storage: PersistStorage<Store> = {
-	getItem: (name) => {
-		const str = localStorage.getItem(name);
-		if (!str) {
-			return null;
-		}
-		try {
-			return SuperJSON.parse(str);
-		} catch (err) {
-			console.error("Failed to parse storage:", err);
-			throw err;
-		}
-	},
-	setItem: (name, value) => {
-		localStorage.setItem(name, SuperJSON.stringify(value));
-	},
-	removeItem: (name) => localStorage.removeItem(name),
-};
-
-export const useJournalStore = create<Store>()(
+export const useJournalStore = create<JournalStore>()(
 	persist(
 		(set, get) => ({
 			entries: [],
@@ -141,15 +123,38 @@ export const useJournalStore = create<Store>()(
 		}),
 		{
 			name: "journal_store",
-			storage,
+			storage: {
+				getItem(name) {
+					const str = localStorage.getItem(name);
+					if (!str) {
+						return null;
+					}
+					try {
+						return SuperJSON.parse(str) as StorageValue<JournalStore>;
+					} catch (err) {
+						console.error("Failed to parse storage:", err);
+						throw err;
+					}
+				},
+				setItem(name, value) {
+					localStorage.setItem(name, SuperJSON.stringify(value));
+				},
+				removeItem(name) {
+					localStorage.removeItem(name);
+				},
+			},
 		},
 	),
 );
 
-export const getGroupedAllEntries = memoize(({ entries }: Store) => groupEntriesByDate(entries));
+export const getGroupedAllEntries = memoize(({ entries }: JournalStore) =>
+	groupEntriesByDate(entries),
+);
 
 export const getGroupedEntriesByTag = (tag: string) =>
-	memoize(({ entries }: Store) => groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag))));
+	memoize(({ entries }: JournalStore) =>
+		groupEntriesByDate(entries.filter(({ tags }) => tags.has(tag))),
+	);
 
 function groupEntriesByDate(entries: Array<Entry>) {
 	const groupedMap = entries.reduce(toDayEntriesMap, new Map<string, DayEntries>());
