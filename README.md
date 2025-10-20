@@ -1,75 +1,33 @@
-# React + TypeScript + Vite
+# ZenJournal
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple journaling app with a message-app-like interface, tags for entries, and local persistence. Built with Vite, React, and ShadcnUI.
 
-Currently, two official plugins are available:
+Try it out [here](https://zenjournal-app.netlify.app).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![](./zenjournal.png)
 
-## React Compiler
+## Motivation
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+For some reason, a message app interface creates less of a psychological hurdle to journaling than a Markdown file for me. I also like to have timestamps for my entries to log throughout the day and see how my day's been going.
 
-Note: This will impact Vite dev & build performances.
+I've been using Telegram for journaling, but I'm missing the ability to write my entries in one place, tag them, and then see entries for each tag separately. That's why I created ZenJournal.
 
-## Expanding the ESLint configuration
+## Features roadmap
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- [x] Tags get extracted from input text and attached to the entry
+- [x] Persistence to localStorage
+- [x] Editing and deleting entries
+- [ ] Suggestions dropdown with existing tags after typing `#`
+- [ ] Renaming and deleting tags
+- [ ] Back-up export and import
+- [ ] Keyboard navigation
 
-```js
-export default defineConfig([
-	globalIgnores(["dist"]),
-	{
-		files: ["**/*.{ts,tsx}"],
-		extends: [
-			// Other configs...
+## A note on using the Temporal API
 
-			// Remove tseslint.configs.recommended and replace with this
-			tseslint.configs.recommendedTypeChecked,
-			// Alternatively, use this for stricter rules
-			tseslint.configs.strictTypeChecked,
-			// Optionally, add this for stylistic rules
-			tseslint.configs.stylisticTypeChecked,
+When I travel between timezones (which is not rare), I want to see past entries written on the day and at the time they were written in the original timezone, not in the current timezone—but also preserve the timezone information in the data so that I can recover the exact time instant of the entry. I also want to group entries based on their date (in the original timezone). The `ZonedDateTime`, `PlainTime`, and `PlainDate` classes from the Temporal proposal make this incredibly easy compared to the `Date` class.
 
-			// Other configs...
-		],
-		languageOptions: {
-			parserOptions: {
-				project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-				tsconfigRootDir: import.meta.dirname,
-			},
-			// other options...
-		},
-	},
-]);
-```
+I use `superjson` to be able to persist Temporal instances, which I would've had to do for `Date` anyway.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## A note on copying UX from Telegram
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-	globalIgnores(["dist"]),
-	{
-		files: ["**/*.{ts,tsx}"],
-		extends: [
-			// Other configs...
-			// Enable lint rules for React
-			reactX.configs["recommended-typescript"],
-			// Enable lint rules for React DOM
-			reactDom.configs.recommended,
-		],
-		languageOptions: {
-			parserOptions: {
-				project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-				tsconfigRootDir: import.meta.dirname,
-			},
-			// other options...
-		},
-	},
-]);
-```
+When in doubt, I copied behavior from Telegram, e.g. saving and restoring existing drafts when you edit a message, whitespace treatment, displaying the current text of the edited message, etc.
