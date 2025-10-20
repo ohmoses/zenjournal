@@ -150,8 +150,9 @@ export default function EntryInput({
 							value={text}
 							onChange={handleChange}
 							onKeyDown={handleKeyDown}
+							placeholder="Write an entry…"
 							className={cn(
-								"max-h-64 min-h-11 md:text-[15px]",
+								"placeholder:text-muted-foreground/75 max-h-64 min-h-11 md:text-[15px]",
 								// Make invisible
 								"rounded-none border-none p-0 shadow-none dark:bg-transparent",
 								// Remove focus ring (moved to Card)
