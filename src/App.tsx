@@ -1,12 +1,11 @@
 import React from "react";
-import { Routes, Route, BrowserRouter, Link } from "react-router";
-import { useJournalStore } from "./store";
+import { Routes, Route, BrowserRouter } from "react-router";
 import Route404 from "./404";
 import JournalPage from "./journal-page";
+import AppSidebar from "./app-sidebar";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 export default function App() {
-	const tagCounts = useJournalStore((store) => store.tagCounts);
-
 	React.useEffect(() => {
 		const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		const handleChange = (e: MediaQueryListEvent) => {
@@ -20,29 +19,16 @@ export default function App() {
 
 	return (
 		<BrowserRouter>
-			<div className="flex">
-				<nav>
-					<ul>
-						<li>
-							<Link to="/">main</Link>
-						</li>
-						{[...tagCounts].map(([tag, count]) => (
-							<li key={tag}>
-								<Link to={`/tag/${tag}`}>
-									#{tag} ({count})
-								</Link>
-							</li>
-						))}
-					</ul>
-				</nav>
-				<main>
+			<SidebarProvider>
+				<AppSidebar />
+				<main className="flex-1">
 					<Routes>
 						<Route index element={<JournalPage />} />
 						<Route path="/tag/:tag" element={<JournalPage />} />
 						<Route path="*" element={<Route404 />} />
 					</Routes>
 				</main>
-			</div>
+			</SidebarProvider>
 		</BrowserRouter>
 	);
 }

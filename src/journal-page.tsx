@@ -1,108 +1,144 @@
 import { useShallow } from "zustand/shallow";
-import { getGroupedAllEntries, getGroupedEntriesByTag, useJournalStore, type Entry } from "./store";
+import {
+	getGroupedAllEntries,
+	getGroupedEntriesByTag,
+	useJournalStore,
+	type Entry as EntryType,
+} from "./store";
 import EntryInput from "./entry-input";
 import React from "react";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
+import Entry from "./entry";
+import { cn } from "./lib/utils";
+import { SidebarTrigger, useSidebar } from "./components/ui/sidebar";
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "./components/ui/empty";
+import { Button } from "./components/ui/button";
+import { isValidTag } from "./lib/tag";
 
 export default function JournalPage() {
 	const { tag } = useParams();
+	const { isMobile } = useSidebar();
 	const entries = useJournalStore(
 		useShallow(tag ? getGroupedEntriesByTag(tag) : getGroupedAllEntries),
 	);
-	const { addEntry, updateEntry, deleteEntry } = useJournalStore(
+	const { addEntry, updateEntry } = useJournalStore(
 		useShallow((store) => ({
 			addEntry: store.addEntry,
 			updateEntry: store.updateEntry,
-			deleteEntry: store.deleteEntry,
 		})),
 	);
-	const [entryToEdit, setEntryToEdit] = React.useState<Entry | null>(null);
-	const [entryToDelete, setEntryToDelete] = React.useState<Entry | null>(null);
+	const [entryToEdit, setEntryToEdit] = React.useState<EntryType | null>(null);
+	const entriesEndElement = React.useRef<HTMLLIElement>(null);
 
 	function submit({ text, tags }: { text: string; tags: Set<string> }) {
 		if (entryToEdit) {
-			// Don't auto-add the current tag to edited messages; removing the tag was intentional
-			updateEntry(entryToEdit.id, { text, tags });
+			const isSame =
+				text === entryToEdit.text &&
+				tags.size === entryToEdit.tags.size &&
+				tags.isSubsetOf(entryToEdit.tags);
+			if (!isSame) {
+				// Don't auto-add the current tag to edited messages; removing the tag was intentional
+				updateEntry(entryToEdit.id, { text, tags });
+			}
 			setEntryToEdit(null);
 		} else {
+			// Otherwise auto-add the current tag
 			const newTags = tag ? new Set(tags).add(tag) : tags;
 			addEntry({ text, tags: newTags });
+			setTimeout(() => entriesEndElement.current?.scrollIntoView());
 		}
 	}
 
-	if (tag && !/^[A-Za-z0-9_-]+$/.test(tag)) {
-		return <div>Invalid tag.</div>;
+	React.useLayoutEffect(() => {
+		entriesEndElement.current?.scrollIntoView();
+	}, [tag]);
+
+	if (tag && !isValidTag(tag)) {
+		return (
+			<Empty className="h-full">
+				<EmptyHeader>
+					<EmptyTitle>Invalid tag.</EmptyTitle>
+				</EmptyHeader>
+				<EmptyContent>
+					<Button variant="default" asChild>
+						<Link to="/">Go home</Link>
+					</Button>
+				</EmptyContent>
+			</Empty>
+		);
 	}
 
+	const MAIN_Y_GAP = 8;
+	const DAYS_Y_GAP = 3;
+	// Fade effect on the top and bottom of entries
+	const fadeClasses = cn(
+		`after:pointer-events-none after:absolute after:right-0 after:left-0 after:h-${MAIN_Y_GAP} after:from-[var(--background)] after:to-transparent after:content-['']`,
+	);
+	const fadeTopClasses = cn(
+		fadeClasses,
+		// Hack to not cover bottom border. Not sure if there's a better way
+		"after:top-[calc(100%+1px)]",
+		"after:bg-gradient-to-b",
+	);
+	const fadeBottomClasses = cn(fadeClasses, "after:bottom-full", "after:bg-gradient-to-t");
+
 	return (
-		<main>
-			<h1 className="font-semibold text-lg">{tag ? `#${tag}` : "main"}</h1>
-			{entryToDelete && (
-				<div>
-					Want to delete entry "
-					{entryToDelete.text.length <= 10
-						? entryToDelete.text
-						: entryToDelete.text.slice(0, 10) + "…"}
-					"?{" "}
-					<span className="inline-flex gap-1">
-						<button
-							onClick={(_) => {
-								setEntryToDelete(null);
-								deleteEntry(entryToDelete.id);
-							}}
-						>
-							[delete]
-						</button>
-						<button
-							onClick={(_) => {
-								setEntryToDelete(null);
-							}}
-						>
-							[cancel]
-						</button>
-					</span>
+		<>
+			<header
+				className={cn(
+					"bg-sidebar sticky top-0 z-10 flex w-full gap-3 border-b px-5 py-3",
+					fadeTopClasses,
+				)}
+			>
+				{isMobile && <SidebarTrigger />}
+				<h1 className="text-xl font-medium tracking-wide">{tag ? `#${tag}` : "main"}</h1>
+			</header>
+			<div className={`m-auto flex max-w-2xl flex-col gap-${MAIN_Y_GAP} p-${MAIN_Y_GAP} pb-0`}>
+				<ol className={`flex flex-col gap-${DAYS_Y_GAP}`}>
+					{entries.map(({ date, entries }) => (
+						<li key={date.toString()}>
+							<section className="flex flex-col gap-3">
+								<header className="flex justify-center">
+									<h2 className="rounded-full border px-2 py-0.5 font-medium shadow-xs">
+										<time dateTime={date.toString()}>
+											{date.toLocaleString(undefined, { month: "long", day: "numeric" })}
+										</time>
+									</h2>
+								</header>
+								<ol className="flex flex-col gap-1">
+									{entries.map((entry) => (
+										<Entry
+											key={entry.id}
+											entry={entry}
+											setToEdit={() => setEntryToEdit(entry)}
+											omitTag={tag}
+										/>
+									))}
+								</ol>
+							</section>
+						</li>
+					))}
+					{/* Remove the extra gap using negative margin */}
+					<li ref={entriesEndElement} className={`mt-[calc(var(--spacing)*-${DAYS_Y_GAP})]`} />
+				</ol>
+				<div
+					className={cn(`bg-background sticky bottom-0 z-10 pb-${MAIN_Y_GAP}`, fadeBottomClasses)}
+				>
+					<EntryInput
+						// Clear input by re-mounting when tag changes
+						key={tag}
+						submit={submit}
+						entryToEdit={entryToEdit}
+						cancelEdit={() => setEntryToEdit(null)}
+						editLast={() => {
+							const lastEntry = entries.at(-1)?.entries.at(-1);
+							if (lastEntry) {
+								setEntryToEdit(lastEntry);
+							}
+						}}
+					/>
 				</div>
-			)}
-			<ol>
-				{entries.map(({ date, entries }) => (
-					<li key={date.toString()}>
-						<section>
-							<header>{date.toLocaleString(undefined, { month: "long", day: "numeric" })}</header>
-							<ol>
-								{entries.map((entry) => (
-									<li key={entry.id}>
-										[
-										{entry.createdAt
-											.toPlainTime()
-											.toLocaleString(undefined, { timeStyle: "short" })}
-										] {entry.text}{" "}
-										<span className="inline-flex gap-1">
-											{[...entry.tags]
-												.filter((t) => t !== tag)
-												.map((tag) => (
-													<span key={tag} className="bg-blue-500">
-														#{tag}
-													</span>
-												))}
-										</span>{" "}
-										<span className="inline-flex gap-1">
-											<button onClick={(_) => setEntryToEdit(entry)}>[edit]</button>
-											<button onClick={(_) => setEntryToDelete(entry)}>[delete]</button>
-										</span>
-									</li>
-								))}
-							</ol>
-						</section>
-					</li>
-				))}
-			</ol>
-			<EntryInput
-				// Clear input when tag changes
-				key={tag}
-				submit={submit}
-				entryToEdit={entryToEdit}
-				cancelEdit={() => setEntryToEdit(null)}
-			/>
-		</main>
+			</div>
+		</>
 	);
 }
