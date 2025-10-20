@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router";
-import { useJournalStore } from "./store";
+import { useJournalStore } from "../store";
 import {
 	Sidebar,
 	SidebarContent,
@@ -10,7 +10,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
-} from "./components/ui/sidebar";
+} from "./ui/sidebar";
 
 export default function AppSidebar() {
 	const location = useLocation();

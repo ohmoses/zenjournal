@@ -1,12 +1,12 @@
 import React from "react";
-import type { Entry } from "./store";
-import { Textarea } from "./components/ui/textarea";
-import { Badge } from "./components/ui/badge";
-import { Card } from "./components/ui/card";
-import { Button } from "./components/ui/button";
+import type { Entry } from "../store";
+import { Textarea } from "./ui/textarea";
+import { Badge } from "./ui/badge";
+import { Card } from "./ui/card";
+import { Button } from "./ui/button";
 import { Check, SendHorizonal, X } from "lucide-react";
-import { cn } from "./lib/utils";
-import { extractTag } from "./lib/tag";
+import { cn } from "../lib/utils";
+import { extractTag } from "../lib/tag";
 
 export default function EntryInput({
 	submit,

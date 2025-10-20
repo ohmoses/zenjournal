@@ -1,13 +1,7 @@
 import { Pencil, Trash2 } from "lucide-react";
-import { Button } from "./components/ui/button";
-import { useJournalStore, type Entry } from "./store";
-import {
-	Dialog,
-	DialogClose,
-	DialogContent,
-	DialogFooter,
-	DialogTrigger,
-} from "./components/ui/dialog";
+import { Button } from "./ui/button";
+import { useJournalStore, type Entry } from "../store";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogTrigger } from "./ui/dialog";
 import { Link } from "react-router";
 
 export default function Entry({

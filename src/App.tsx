@@ -1,8 +1,8 @@
 import React from "react";
 import { Routes, Route, BrowserRouter } from "react-router";
-import Route404 from "./404";
-import JournalPage from "./journal-page";
-import AppSidebar from "./app-sidebar";
+import Route404 from "./components/404";
+import JournalPage from "./components/journal-page";
+import AppSidebar from "./components/app-sidebar";
 import { SidebarProvider } from "./components/ui/sidebar";
 
 export default function App() {

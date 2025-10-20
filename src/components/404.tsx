@@ -1,6 +1,6 @@
 import { Link } from "react-router";
-import { Button } from "./components/ui/button";
-import { Empty, EmptyHeader, EmptyTitle, EmptyContent } from "./components/ui/empty";
+import { Button } from "./ui/button";
+import { Empty, EmptyHeader, EmptyTitle, EmptyContent } from "./ui/empty";
 
 export default function Route404() {
 	return (

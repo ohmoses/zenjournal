@@ -4,16 +4,16 @@ import {
 	getGroupedEntriesByTag,
 	useJournalStore,
 	type Entry as EntryType,
-} from "./store";
+} from "../store";
 import EntryInput from "./entry-input";
 import React from "react";
 import { Link, useParams } from "react-router";
 import Entry from "./entry";
-import { cn } from "./lib/utils";
-import { SidebarTrigger, useSidebar } from "./components/ui/sidebar";
-import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "./components/ui/empty";
-import { Button } from "./components/ui/button";
-import { isValidTag } from "./lib/tag";
+import { cn } from "../lib/utils";
+import { SidebarTrigger, useSidebar } from "./ui/sidebar";
+import { Empty, EmptyContent, EmptyHeader, EmptyTitle } from "./ui/empty";
+import { Button } from "./ui/button";
+import { isValidTag } from "../lib/tag";
 
 export default function JournalPage() {
 	const { tag } = useParams();
