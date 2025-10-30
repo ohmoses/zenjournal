@@ -19,7 +19,15 @@ export default function Entry({
 	return (
 		// The transition duration for the bg color and for the buttons opacity has to be different
 		// to make them optically more similar
-		<div className="group hover:bg-muted relative flex flex-col gap-1 rounded-md px-2 py-1 transition-colors duration-100">
+		<div
+			className="group hover:bg-muted focus-within:bg-muted relative flex flex-col gap-1 rounded-md px-2 py-1 transition-colors duration-100 focus:outline-none"
+			tabIndex={0}
+			onClick={(e) => {
+				const el = e.currentTarget;
+				if (document.activeElement === el) el.blur();
+				else el.focus();
+			}}
+		>
 			<div className="flex flex-col gap-2.5 text-sm md:text-[15px]">
 				{text.length > 0 ? (
 					text.split("\n\n").map((p, index) => (
@@ -53,7 +61,7 @@ export default function Entry({
 					</>
 				)}
 			</footer>
-			<div className="group-hover:bg-muted absolute top-0 right-0 flex items-center gap-1 rounded-md bg-transparent px-3 py-2.5 opacity-0 transition-[opacity,colors] duration-200 group-hover:opacity-100 md:min-h-12">
+			<div className="group-hover:bg-muted group-focus:bg-muted group-focus-within:bg-muted pointer-events-none absolute top-0 right-0 flex items-center gap-1 rounded-md bg-transparent px-3 py-2.5 opacity-0 transition-[opacity,colors] duration-200 group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 group-focus:pointer-events-auto group-focus:opacity-100 md:min-h-12">
 				<Button
 					size="icon"
 					variant="ghost"
