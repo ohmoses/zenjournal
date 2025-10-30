@@ -90,7 +90,7 @@ export default function EntryInput({
 			setTags(new Set());
 			setText("");
 		}
-		requestAnimationFrame(() => textareaRef.current?.focus());
+		textareaRef.current?.focus();
 	}
 
 	function handleChange({ target: { value } }: React.ChangeEvent<HTMLTextAreaElement>) {

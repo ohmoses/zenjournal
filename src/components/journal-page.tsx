@@ -17,7 +17,8 @@ import { isValidTag } from "../lib/tag";
 
 export default function JournalPage() {
 	const { tag } = useParams();
-	const { isMobile } = useSidebar();
+	const { isMobile: isNarrow } = useSidebar();
+	const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
 	const entries = useJournalStore(
 		useShallow(tag ? getGroupedEntriesByTag(tag) : getGroupedAllEntries),
 	);
@@ -29,6 +30,7 @@ export default function JournalPage() {
 	);
 	const [entryToEdit, setEntryToEdit] = React.useState<EntryType | null>(null);
 	const entriesEndElement = React.useRef<HTMLDivElement>(null);
+	const entryInputElement = React.useRef<HTMLDivElement>(null);
 
 	function submit({ text, tags }: { text: string; tags: Set<string> }) {
 		if (entryToEdit) {
@@ -49,9 +51,35 @@ export default function JournalPage() {
 		}
 	}
 
-	React.useLayoutEffect(() => {
+	function scrollToInput() {
+		document.documentElement.scrollTop = 0;
 		entriesEndElement.current?.scrollIntoView();
+		entryInputElement.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+	}
+
+	React.useLayoutEffect(() => {
+		if (isTouchDevice) {
+			setTimeout(scrollToInput, 100);
+		} else {
+			scrollToInput();
+		}
 	}, [tag]);
+
+	React.useEffect(() => {
+		const handleFocus = (e: FocusEvent) => {
+			const target = e.target as HTMLElement;
+			if (isTouchDevice && entryInputElement.current?.contains(target)) {
+				setTimeout(scrollToInput, 100);
+			}
+		};
+
+		document.addEventListener("focusin", handleFocus);
+		window.visualViewport?.addEventListener("resize", scrollToInput);
+		return () => {
+			document.removeEventListener("focusin", handleFocus);
+			window.visualViewport?.removeEventListener("resize", scrollToInput);
+		};
+	}, []);
 
 	if (tag && !isValidTag(tag)) {
 		return (
@@ -96,7 +124,7 @@ export default function JournalPage() {
 					fadeTopClasses,
 				)}
 			>
-				{isMobile && <SidebarTrigger />}
+				{isNarrow && <SidebarTrigger />}
 				<h1 className="text-xl font-medium tracking-wide">{tag ? `#${tag}` : "main"}</h1>
 			</header>
 			<div className="m-auto flex max-w-xl flex-col px-4">
@@ -135,6 +163,7 @@ export default function JournalPage() {
 						"bg-background sticky bottom-0 z-10",
 						fadeBottomClasses,
 					)}
+					ref={entryInputElement}
 				>
 					<EntryInput
 						// Clear input by re-mounting when tag changes
