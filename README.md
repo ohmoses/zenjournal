@@ -21,6 +21,7 @@ I've been using Telegram for journaling, but I'm missing the ability to write my
 - [ ] Renaming and deleting tags
 - [ ] Back-up export and import
 - [ ] Keyboard navigation
+- [ ] Support mobile browsers
 
 ## A note on using the Temporal API
 
